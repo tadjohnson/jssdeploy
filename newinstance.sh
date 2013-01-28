@@ -22,6 +22,14 @@
 	read -p "Database Name: " dbName
 	read -p "Database User: " dbUser
 	read -p "Database Password: " dbPass
+	
+# Check to make sure the directory defined in $logPath exists
+
+	if [ ! -d "$logPath" ]; then
+		echo $logPath does not exist!
+		echo Creating $logPath
+		mkdir -p $logPath
+	fi
 				
 # Create unique logs for the JSS instance
 # This will create a new directory at the path specified in logPath above using your instance name
