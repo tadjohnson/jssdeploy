@@ -1,7 +1,7 @@
 #! /bin/sh
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2 - 1/28/12
+#	Version 2.2.2 - 1/28/12
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.62
 
 #	This script should be run as root
@@ -30,7 +30,23 @@
 		echo Creating $logPath
 		mkdir -p $logPath
 	fi
-				
+
+# Check to make sure the instance doesn't already exist
+# This gives an option to overwrite if desired
+
+	if [ -d "/var/lib/tomcat7/$instanceName" ]; then
+		echo A JSS instance called $instanceName already exists!
+		sleep 1
+		read -p "Type 'OVERWRITE' to overwrite this instance: " overwriteInstance
+			if [ $overwriteInstance == OVERWRITE ]; then
+				echo Overwriting instance $instanceName!!!
+			else
+				echo Aborting!
+				sleep 1
+				exit 1
+			fi
+	fi
+					
 # Create unique logs for the JSS instance
 # This will create a new directory at the path specified in logPath above using your instance name
 
