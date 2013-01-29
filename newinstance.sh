@@ -22,14 +22,6 @@
 	read -p "Database Name: " dbName
 	read -p "Database User: " dbUser
 	read -p "Database Password: " dbPass
-	
-# Check to make sure the directory defined in $logPath exists
-
-	if [ ! -d "$logPath" ]; then
-		echo $logPath does not exist!
-		echo Creating $logPath
-		mkdir -p $logPath
-	fi
 
 # Check to make sure the instance doesn't already exist
 # This gives an option to overwrite if desired
@@ -45,6 +37,14 @@
 				sleep 1
 				exit 1
 			fi
+	fi
+
+# Check to make sure the directory defined in $logPath exists
+
+	if [ ! -d "$logPath" ]; then
+		echo $logPath does not exist!
+		echo Creating $logPath
+		mkdir -p $logPath
 	fi
 					
 # Create unique logs for the JSS instance
