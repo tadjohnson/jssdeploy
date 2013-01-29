@@ -1,7 +1,7 @@
 #! /bin/sh
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2.2 - 1/28/12
+#	Version 2.2.3 - 1/29/12
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.62
 
 #	This script should be run as root
@@ -15,6 +15,16 @@
 	logPath="/var/log/JSS"
 	#Path to your ROOT.war file
 	webapp="/usr/jsscomponents/ROOT.war"
+	
+# Check to make sure ROOT.war exists at the specified path
+
+	if [ ! -f $webapp ]; then
+		echo $webapp does not exist!
+		sleep 1
+		echo Aborting!
+		sleep 1
+		exit 1
+	fi
 
 # Get JSS instance name and database connection information from user
 
