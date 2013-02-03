@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
 #	Version 2.2.5 - 2/3/12
