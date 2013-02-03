@@ -1,7 +1,8 @@
 #! /bin/sh
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2.3 - 1/29/12
+#	Version 2.2.4 - 2/2/12
+#	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.62
 
 #	This script should be run as root
@@ -31,7 +32,28 @@
 	read -p "Instance Name: " instanceName
 	read -p "Database Name: " dbName
 	read -p "Database User: " dbUser
-	read -p "Database Password: " dbPass
+	read -s -p "Database Password: " dbPass
+	
+# Check connection to MySQL server using user-defined credentials
+
+	echo Testing database username and password
+	until mysql -h $dbHost -u $dbUser -p$dbPass  -e ";" ; do
+		echo Invalid database username or password. Please retry.
+		read -p "Database User: " dbUser
+		read -s -p "Database Password: " dbPass
+	done
+	
+# Check to make sure the user-defined database exists
+
+	echo Checking existence of $dbName on $dbHost
+	if [[ ! -z "`mysql -h $dbHost -u $dbUser -p$dbPass -qfsBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='$dbName'" 2>&1`" ]];
+		then
+  			echo "Database connection test successful"
+		else
+ 			echo "DATABASE DOES NOT EXIST or USER $dbUser DOES NOT HAVE PERMISSION!"
+ 			sleep 1
+ 			exit 1
+	fi
 
 # Check to make sure the instance doesn't already exist
 # This gives an option to overwrite if desired
