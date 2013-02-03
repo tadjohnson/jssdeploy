@@ -1,7 +1,7 @@
 #! /bin/sh
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2.4 - 2/2/12
+#	Version 2.2.5 - 2/3/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.62
 
@@ -80,14 +80,31 @@
 	fi
 					
 # Create unique logs for the JSS instance
-# This will create a new directory at the path specified in logPath above using your instance name
 
-	echo Creating $logPath/$instanceName
-	mkdir $logPath/$instanceName
-	echo Creating JAMFSoftwareServer.log
-	touch $logPath/$instanceName/JAMFSoftwareServer.log
-	echo Creating jamfChangeManagement.log
-	touch $logPath/$instanceName/jamfChangeManagement.log
+	if [ ! -d "$logPath/$instanceName" ];
+		then
+			echo Creating $logPath/$instanceName/
+			mkdir $logPath/$instanceName
+		else
+			echo $logPath/$instanceName/ exists
+	fi
+	
+	if [ ! -f "$logPath/$instanceName/JAMFSoftwareServer.log" ];
+		then
+			echo Creating $logPath/$instanceName/JAMFSoftwareServer.log
+			touch $logPath/$instanceName/JAMFSoftwareServer.log
+		else
+			echo $logPath/$instanceName/JAMFSoftwareServer.log exists
+	fi
+	
+	if [ ! -f "$logPath/$instanceName/jamfChangeManagement.log" ];
+		then
+			echo Creating $logPath/$instanceName/jamfChangeManagement.log
+			touch $logPath/$instanceName/jamfChangeManagement.log
+		else
+			echo $logPath/$instanceName/jamfChangeManagement.log exists
+	fi
+	
 	echo Applying permissions to log files
 	chown tomcat7:tomcat7 $logPath/$instanceName/*
 
