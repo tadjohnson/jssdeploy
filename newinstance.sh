@@ -1,9 +1,9 @@
 #! /bin/bash
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2.5 - 2/3/12
+#	Version 2.2.6 - 2/6/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
-#	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.62
+#	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
 
 #	This script should be run as root
 
@@ -20,7 +20,7 @@
 # Check to make sure ROOT.war exists at the specified path
 
 	if [ ! -f $webapp ]; then
-		echo $webapp does not exist!
+		echo $webapp not found!
 		sleep 1
 		echo Aborting!
 		sleep 1
@@ -45,12 +45,13 @@
 	
 # Check to make sure the user-defined database exists
 
-	echo Checking existence of $dbName on $dbHost
+	echo "Checking existence of database $dbName on host $dbHost"
 	if [[ ! -z "`mysql -h $dbHost -u $dbUser -p$dbPass -qfsBe "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='$dbName'" 2>&1`" ]];
 		then
   			echo "Database connection test successful"
 		else
- 			echo "DATABASE DOES NOT EXIST or USER $dbUser DOES NOT HAVE PERMISSION!"
+ 			echo DATABASE DOES NOT EXIST or USER $dbUser DOES NOT HAVE PERMISSION!
+ 			echo "Please ensure that user $dbUser has permission to access database $dbName on host $dbHost"
  			sleep 1
  			exit 1
 	fi
@@ -58,7 +59,7 @@
 # Check to make sure the instance doesn't already exist
 # This gives an option to overwrite if desired
 
-	if [ -d "/var/lib/tomcat7/$instanceName" ]; then
+	if [ -d "/var/lib/tomcat7/webapps/$instanceName" ]; then
 		echo A JSS instance called $instanceName already exists!
 		sleep 1
 		read -p "Type 'OVERWRITE' to overwrite this instance: " overwriteInstance
@@ -85,6 +86,7 @@
 		then
 			echo Creating $logPath/$instanceName/
 			mkdir $logPath/$instanceName
+			chown tomcat7:tomcat7 $logPath/$instanceName
 		else
 			echo $logPath/$instanceName/ exists
 	fi
@@ -93,6 +95,7 @@
 		then
 			echo Creating $logPath/$instanceName/JAMFSoftwareServer.log
 			touch $logPath/$instanceName/JAMFSoftwareServer.log
+			chown tomcat7:tomcat7 $logPath/$instanceName/JAMFSoftwareServer.log
 		else
 			echo $logPath/$instanceName/JAMFSoftwareServer.log exists
 	fi
@@ -101,21 +104,25 @@
 		then
 			echo Creating $logPath/$instanceName/jamfChangeManagement.log
 			touch $logPath/$instanceName/jamfChangeManagement.log
+			chown tomcat7:tomcat7 $logPath/$instanceName/jamfChangeManagement.log
 		else
 			echo $logPath/$instanceName/jamfChangeManagement.log exists
 	fi
-	
-	echo Applying permissions to log files
-	chown tomcat7:tomcat7 $logPath/$instanceName/*
 
 # Deploy Tomcat JSS webapp with user-defined instance name
+
+	if [ $overwriteInstance == OVERWRITE ]; then
+		echo Removing existing webapp
+		rm -rf /var/lib/tomcat7/webapps/$instanceName.war
+		rm -rf /var/lib/tomcat7/webapps/$instanceName
+	fi
 
 	echo Deploying Tomcat webapp
 	cp $webapp /var/lib/tomcat7/webapps/$instanceName.war
 	
 # Sleep timer to allow tomcat app to deploy before attempting to write to log4j files
 
-	sleep 15
+	sleep 25
 
 # Change log4j files to point logs to new log locations
 
