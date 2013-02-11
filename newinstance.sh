@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.2.6 - 2/6/12
+#	Version 2.7 - 2/11/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
 
@@ -54,6 +54,33 @@
  			echo "Please ensure that user $dbUser has permission to access database $dbName on host $dbHost"
  			sleep 1
  			exit 1
+	fi
+	
+# Dump MySQL database to /tmp/
+
+	dbBackup=""
+	dbBackupSure=""
+	
+	until [[ $dbBackup == y || $dbBackup == n || $dbBackup == Y || $dbBackup == N ]] ; do
+		read -p "Would you like to back up your database before proceeding? [y/n]: " dbBackup
+	done
+	
+	if [[ $dbBackup == y || $dbBackup == Y ]] ; then
+		echo Dumping MySQL database...
+		mysqldump -h $dbHost -u $dbUser -p$dbPass $dbName > /tmp/$dbName.sql
+		echo Database dumped to /tmp/$dbName.sql
+	else
+		until [[ $dbBackupSure == y || $dbBackupSure == n || $dbBackupSure == Y || $dbBackupSure == N ]] ; do
+			echo Database will not be backed up!
+			read -p "Are you sure you want to proceed? [y/n]: " dbBackupSure
+		done
+		if [[ $dbBackupSure == y || $dbBackupSure == Y ]] ; then
+			echo Proceeding without backing up the database!
+		else
+			echo Aborting!
+			sleep 1
+			exit 1
+		fi
 	fi
 
 # Check to make sure the instance doesn't already exist
