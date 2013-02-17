@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #	Automated multi-context JSS deployment script by John Kitzmiller
-#	Version 2.7 - 2/17/12
+#	Version 2.7.1 - 2/17/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
 
@@ -207,13 +207,29 @@
 	echo Deploying Tomcat webapp
 	cp $webapp $tomcatPath/webapps/$instanceName.war
 	
-# Sleep timer to allow tomcat app to deploy before attempting to write to log4j files
+# Sleep timer to allow tomcat app to deploy
 
-	until [ -d "$tomcatPath/webapps/$instanceName" ];
+	counter=0
+	while [ $counter -lt 12 ];
 		do
-			echo "Waiting for Tomcat webapp to deploy..."
-			sleep 5
+			if [ ! -d "$tomcatPath/webapps/$instanceName" ];
+				then
+					echo "Waiting for Tomcat webapp to deploy..."
+					sleep 5
+					let counter=counter+1
+			fi
 	done
+	
+	if [ ! -d "$tomcatPath/webapps/$instanceName" ];
+		then
+			echo Something is wrong...
+			echo Tomcat webapp has not deployed.
+			echo Aborting!
+			sleep 1
+			exit 1
+		else
+			echo Webapp has deployed.
+	fi
 
 # Change log4j files to point logs to new log locations
 
