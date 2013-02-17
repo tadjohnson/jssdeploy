@@ -1,30 +1,46 @@
 #! /bin/bash
 
-#	Automated multi-instance JSS deployment script by John Kitzmiller
-#	Version 2.7 - 2/11/12
+#	Automated multi-context JSS deployment script by John Kitzmiller
+#	Version 2.7 - 2/17/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
 
+#	This script assumes Tomcat7 and MySQL client are installed
+
 #	This script should be run as root
 
-# Declare Variables
-# Edit these to suit your environment
+##########################################################################################
+############### Edit the following variables to suit your environment ####################
+##########################################################################################
 
-	#The FQDN or IP of your mySQL database host
+	# The FQDN or IP of your MySQL database host
 	dbHost="localhost"
-	#Path where you store your JSS logs (do not leave a trailing / at the end of your path)
+	
+	# Path where you store your JSS logs (do not leave a trailing / at the end of your path)
 	logPath="/var/log/JSS"
-	#Path to your ROOT.war file
+	
+	# Path to your .war file
 	webapp="/usr/jsscomponents/ROOT.war"
+	
+	# Path to Tomcat directory (do not leave a trailing / at the end of your path)
+	tomcatPath="/var/lib/tomcat7"
+	
+	# Path to dump MySQL database (do not leave a trailing / at the end of your path)
+	dbDump="/tmp"
+	
+##########################################################################################
+########### It is not recommended that you make any changes after this line ##############
+##########################################################################################
 	
 # Check to make sure ROOT.war exists at the specified path
 
-	if [ ! -f $webapp ]; then
-		echo $webapp not found!
-		sleep 1
-		echo Aborting!
-		sleep 1
-		exit 1
+	if [ ! -f $webapp ];
+		then
+			echo $webapp not found!
+			sleep 1
+			echo Aborting!
+			sleep 1
+			exit 1
 	fi
 
 # Get JSS instance name and database connection information from user
@@ -37,10 +53,11 @@
 # Check connection to MySQL server using user-defined credentials
 
 	echo Testing database username and password
-	until mysql -h $dbHost -u $dbUser -p$dbPass  -e ";" ; do
-		echo Invalid database username or password. Please retry.
-		read -p "Database User: " dbUser
-		read -s -p "Database Password: " dbPass
+	until mysql -h $dbHost -u $dbUser -p$dbPass  -e ";" ;
+		do
+			echo Invalid database username or password. Please retry.
+			read -p "Database User: " dbUser
+			read -s -p "Database Password: " dbPass
 	done
 	
 # Check to make sure the user-defined database exists
@@ -56,55 +73,64 @@
  			exit 1
 	fi
 	
-# Dump MySQL database to /tmp/
+# Dump MySQL database to directory declared above
 
 	dbBackup=""
-	dbBackupSure=""
 	
-	until [[ $dbBackup == y || $dbBackup == n || $dbBackup == Y || $dbBackup == N ]] ; do
-		read -p "Would you like to back up your database before proceeding? [y/n]: " dbBackup
+	until [[ $dbBackup == y || $dbBackup == n || $dbBackup == Y || $dbBackup == N ]];
+		do
+			read -p "Would you like to back up your database before proceeding? [y/n]: " dbBackup
 	done
 	
-	if [[ $dbBackup == y || $dbBackup == Y ]] ; then
-		echo Dumping MySQL database...
-		mysqldump -h $dbHost -u $dbUser -p$dbPass $dbName > /tmp/$dbName.sql
-		echo Database dumped to /tmp/$dbName.sql
-	else
-		until [[ $dbBackupSure == y || $dbBackupSure == n || $dbBackupSure == Y || $dbBackupSure == N ]] ; do
-			echo Database will not be backed up!
-			read -p "Are you sure you want to proceed? [y/n]: " dbBackupSure
-		done
-		if [[ $dbBackupSure == y || $dbBackupSure == Y ]] ; then
-			echo Proceeding without backing up the database!
+	if [[ $dbBackup == y || $dbBackup == Y ]];
+		then
+			dateTime=$(date '+%Y%m%d_%H%M%S')
+			echo Dumping MySQL database...
+			mysqldump -h $dbHost -u $dbUser -p$dbPass $dbName > $dbDump/$dateTime_$dbName.sql
+			echo Database dumped to $dbDump/$dateTime_$dbName.sql
 		else
-			echo Aborting!
-			sleep 1
-			exit 1
+			dbBackupSure=""
+			until [[ $dbBackupSure == y || $dbBackupSure == n || $dbBackupSure == Y || $dbBackupSure == N ]];
+				do
+					echo Database will not be backed up!
+					read -p "Are you sure you want to proceed? [y/n]: " dbBackupSure
+		done
+		
+		if [[ $dbBackupSure == y || $dbBackupSure == Y ]];
+			then
+				echo Proceeding without backing up the database!
+			else
+				echo Aborting!
+				sleep 1
+				exit 1
 		fi
 	fi
 
 # Check to make sure the instance doesn't already exist
 # This gives an option to overwrite if desired
 
-	if [ -d "/var/lib/tomcat7/webapps/$instanceName" ]; then
-		echo A JSS instance called $instanceName already exists!
-		sleep 1
-		read -p "Type 'OVERWRITE' to overwrite this instance: " overwriteInstance
-			if [ $overwriteInstance == OVERWRITE ]; then
-				echo Overwriting instance $instanceName!!!
-			else
-				echo Aborting!
-				sleep 1
-				exit 1
-			fi
+	if [ -d "$tomcatPath/webapps/$instanceName" ];
+		then
+			echo A JSS instance called $instanceName already exists!
+			sleep 1
+			read -p "Type 'OVERWRITE' to overwrite this instance: " overwriteInstance
+				if [ $overwriteInstance == OVERWRITE ];
+					then
+						echo Overwriting instance $instanceName!!!
+					else
+						echo Aborting!
+						sleep 1
+						exit 1
+				fi
 	fi
 
 # Check to make sure the directory defined in $logPath exists
 
-	if [ ! -d "$logPath" ]; then
-		echo $logPath does not exist!
-		echo Creating $logPath
-		mkdir -p $logPath
+	if [ ! -d "$logPath" ];
+		then
+			echo $logPath does not exist!
+			echo Creating $logPath
+			mkdir -p $logPath
 	fi
 					
 # Create unique logs for the JSS instance
@@ -135,33 +161,71 @@
 		else
 			echo $logPath/$instanceName/jamfChangeManagement.log exists
 	fi
+	
+# Check to make sure Tomcat is running before deploying webapp
+# Gives the user an option to try to start Tomcat if it isn't running
 
-# Deploy Tomcat JSS webapp with user-defined instance name
+	tomcatStat=`service tomcat7 status | grep pid | awk '{print $6}'`
 
-	if [ $overwriteInstance == OVERWRITE ]; then
-		echo Removing existing webapp
-		rm -rf /var/lib/tomcat7/webapps/$instanceName.war
-		rm -rf /var/lib/tomcat7/webapps/$instanceName
+	if [[ $tomcatStat != running ]];
+		then
+			echo Tomcat does not appear to be running.
+			startTomcat=""
+			until [[ $startTomcat == y || $startTomcat == Y || $startTomcat == n || $startTomcat == N ]];
+				do
+					read -p "Would you like to try to start Tomcat? [y/n]: " startTomcat
+			done
+	
+		if [[ $startTomcat == y || $startTomcat == Y ]];
+			then
+				service tomcat7 start
+				tomcatStat=`service tomcat7 status | grep pid | awk '{print $6}'`
+					if [ $tomcatStat != running ];
+						then
+							echo Unable to start Tomcat.
+							echo Aborting!
+							sleep 1
+							exit 1
+					fi
+			else
+				echo "App will not deploy properly if Tomcat is not running."
+				echo "Please start Tomcat before running this script."
+				sleep 1
+				exit 1
+		fi
+	fi
+
+# Deploy JSS webapp with user-defined instance name
+
+	if [[ $overwriteInstance == OVERWRITE ]];
+		then
+			echo Removing existing webapp
+			rm -rf $tomcatPath/webapps/$instanceName.war
+			rm -rf $tomcatPath/webapps/$instanceName
 	fi
 
 	echo Deploying Tomcat webapp
-	cp $webapp /var/lib/tomcat7/webapps/$instanceName.war
+	cp $webapp $tomcatPath/webapps/$instanceName.war
 	
 # Sleep timer to allow tomcat app to deploy before attempting to write to log4j files
 
-	sleep 25
+	until [ -d "$tomcatPath/webapps/$instanceName" ];
+		do
+			echo "Waiting for Tomcat webapp to deploy..."
+			sleep 5
+	done
 
 # Change log4j files to point logs to new log locations
 
 	echo Updating log4j files
-	sed -e "s@log4j.appender.JAMFCMFILE.File=.*@log4j.appender.JAMFCMFILE.File=$logPath/$instanceName/jamfChangeManagement.log@" -e "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i /var/lib/tomcat7/webapps/$instanceName/WEB-INF/classes/log4j.JAMFCMFILE.properties
-	sed "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i /var/lib/tomcat7/webapps/$instanceName/WEB-INF/classes/log4j.JAMFCMSYSLOG.properties
-	sed -e "s@log4j.appender.JAMFCMFILE.File=.*@log4j.appender.JAMFCMFILE.File=$logPath/$instanceName/jamfChangeManagement.log@" -e "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i /var/lib/tomcat7/webapps/$instanceName/WEB-INF/classes/log4j.properties
+	sed -e "s@log4j.appender.JAMFCMFILE.File=.*@log4j.appender.JAMFCMFILE.File=$logPath/$instanceName/jamfChangeManagement.log@" -e "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i $tomcatPath/webapps/$instanceName/WEB-INF/classes/log4j.JAMFCMFILE.properties
+	sed "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i $tomcatPath/webapps/$instanceName/WEB-INF/classes/log4j.JAMFCMSYSLOG.properties
+	sed -e "s@log4j.appender.JAMFCMFILE.File=.*@log4j.appender.JAMFCMFILE.File=$logPath/$instanceName/jamfChangeManagement.log@" -e "s@log4j.appender.JAMF.File=.*@log4j.appender.JAMF.File=$logPath/$instanceName/JAMFSoftwareServer.log@" -i $tomcatPath/webapps/$instanceName/WEB-INF/classes/log4j.properties
 
 # Add database connection info to JSS instance
 
 	echo Writing database connection settings
-	sed -e "s@<ServerName>.*@<ServerName>$dbHost</ServerName>@" -e "s@<DataBaseName>.*@<DataBaseName>$dbName</DataBaseName>@" -e "s@<DataBaseUser>.*@<DataBaseUser>$dbUser</DataBaseUser>@" -e "s@<DataBasePassword>.*@<DataBasePassword>$dbPass</DataBasePassword>@" -i /var/lib/tomcat7/webapps/$instanceName/WEB-INF/xml/DataBase.xml
+	sed -e "s@<ServerName>.*@<ServerName>$dbHost</ServerName>@" -e "s@<DataBaseName>.*@<DataBaseName>$dbName</DataBaseName>@" -e "s@<DataBaseUser>.*@<DataBaseUser>$dbUser</DataBaseUser>@" -e "s@<DataBasePassword>.*@<DataBasePassword>$dbPass</DataBasePassword>@" -i $tomcatPath/webapps/$instanceName/WEB-INF/xml/DataBase.xml
 
 # Restart Tomcat
 
