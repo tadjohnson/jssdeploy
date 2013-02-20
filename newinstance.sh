@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #	Automated multi-context JSS deployment script by John Kitzmiller
-#	Version 2.7.1 - 2/17/12
+#	Version 2.7.2 - 2/20/12
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 #	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
 
@@ -14,15 +14,19 @@
 ##########################################################################################
 
 	# The FQDN or IP of your MySQL database host
+	
 	dbHost="localhost"
 	
 	# Path where you store your JSS logs (do not leave a trailing / at the end of your path)
+	
 	logPath="/var/log/JSS"
 	
 	# Path to your .war file
+	
 	webapp="/usr/jsscomponents/ROOT.war"
 	
 	# Path to Tomcat directory (do not leave a trailing / at the end of your path)
+	
 	tomcatPath="/var/lib/tomcat7"
 	
 	# Path to dump MySQL database (do not leave a trailing / at the end of your path)
@@ -217,6 +221,8 @@
 					echo "Waiting for Tomcat webapp to deploy..."
 					sleep 5
 					let counter=counter+1
+				else
+					let counter=12
 			fi
 	done
 	
