@@ -23,7 +23,7 @@
 	
 	# Path to your .war file
 	
-	webapp="/usr/jsscomponents/ROOT.war"
+	webapp="/usr/local/jssdeploy/ROOT.war"
 	
 	# Path to Tomcat directory (do not leave a trailing / at the end of your path)
 	
