@@ -9,11 +9,16 @@ The script is tested using the latest version of the JSS, Ubuntu Server 12.04, a
 Setup
 
 The script requires a few things to be in place to operate correctly.
-Tomcat 7 should be installed on your server.
-MySQL should be installed on your database server.
-A copy of the JSS ROOT.war needs to be stored locally on the server. By default, the script will look for it in /usr/local/jssdeploy, however this is stored in a variable and can be changed if needed.
-The script can be stored wherever you'd like. It does not need to be in the same location as your ROOT.war file
-This script must be run as root.
+
+-Tomcat 7 should be installed on your server.
+
+-MySQL should be installed on your database server.
+
+-A copy of the JSS ROOT.war needs to be stored locally on the server. By default, the script will look for it in /usr/local/jssdeploy, however this is stored in a variable and can be changed if needed.
+
+-The script can be stored wherever you'd like. It does not need to be in the same location as your ROOT.war file
+
+-This script must be run as root.
 
 
 
