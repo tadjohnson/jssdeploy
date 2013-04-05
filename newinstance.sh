@@ -1,9 +1,14 @@
 #! /bin/bash
 
 #	Automated multi-context JSS deployment script by John Kitzmiller
-#	Version 2.7.2 - 2/20/12
+
+#	http://www.johnkitzmiller.com
+
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
-#	Fully tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.63
+
+#	Version 2.7.3 - 4/5/13
+
+#	Tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.64
 
 #	This script assumes Tomcat7 and MySQL client are installed
 
@@ -30,6 +35,7 @@
 	tomcatPath="/var/lib/tomcat7"
 	
 	# Path to dump MySQL database (do not leave a trailing / at the end of your path)
+	
 	dbDump="/tmp"
 	
 ##########################################################################################
@@ -49,9 +55,21 @@
 
 # Get JSS instance name and database connection information from user
 
+	clear
+	echo "Please enter a name for this instance."
+	echo
 	read -p "Instance Name: " instanceName
+	clear
+	echo "Please enter the name of the database."
+	echo
 	read -p "Database Name: " dbName
+	clear
+	echo "Please enter the name of the database user."
+	echo
 	read -p "Database User: " dbUser
+	clear
+	echo "Please enter the database user's password."
+	echo
 	read -s -p "Database Password: " dbPass
 	
 # Check connection to MySQL server using user-defined credentials
@@ -130,12 +148,27 @@
 
 # Check to make sure the directory defined in $logPath exists
 
-	if [ ! -d "$logPath" ];
-		then
-			echo $logPath does not exist!
-			echo Creating $logPath
-			mkdir -p $logPath
-	fi
+	until [ -d "$logPath" ];
+		do
+			createLogPath=""
+			until [[ $createLogPath == y || $createLogPath == Y || $createLogPath == n || $createLogPath == N ]];
+			do
+				echo $logPath does not exist!
+				read -p "Would you like to create it? [y/n]: " createLogPath
+			done
+			
+			if [[ $createLogPath == Y || $createLogPath == y ]];
+			then
+				echo Creating $logPath
+				mkdir -p $logPath
+			else
+				echo
+				echo "Please specify a new directory for log files."
+				echo "Make sure not to leave a trailing / at the end of your path."
+				echo
+				read -p "Log directory: " logPath
+			fi
+		done
 					
 # Create unique logs for the JSS instance
 
