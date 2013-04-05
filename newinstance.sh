@@ -6,7 +6,7 @@
 
 #	The latest version of this script can be found at https://github.com/jkitzmiller/jssdeploy
 
-#	Version 2.7.3 - 4/5/13
+#	Version 2.7.4 - 4/5/13
 
 #	Tested on Ubuntu 12.04 LTS with Tomcat 7 and Casper Suite v. 8.64
 
@@ -42,6 +42,21 @@
 ########### It is not recommended that you make any changes after this line ##############
 ##########################################################################################
 	
+# Check to make sure script is being run as root
+
+	currentUser=$(whoami)
+
+	if [ $currentUser != root ];
+		then
+			echo You must be root to run this script.
+			sleep 1
+			echo Aborting!
+			sleep 1
+			exit 1
+		else
+			echo "Congratulations! You followed the directions and ran the script as root!"
+	fi
+
 # Check to make sure ROOT.war exists at the specified path
 
 	if [ ! -f $webapp ];
@@ -153,6 +168,7 @@
 			createLogPath=""
 			until [[ $createLogPath == y || $createLogPath == Y || $createLogPath == n || $createLogPath == N ]];
 			do
+				echo
 				echo $logPath does not exist!
 				read -p "Would you like to create it? [y/n]: " createLogPath
 			done
